@@ -1,7 +1,6 @@
 package run;
 
 import server.ServerLogic;
-import server.ServerThread;
 
 public class RunServer {
 

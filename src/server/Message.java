@@ -8,7 +8,7 @@ public class Message implements Serializable {
 
   private String name;
   private String message;
-  private String[] users;
+  private String users;
   private Date time;
 
   public Message(String name, String message){
@@ -17,7 +17,7 @@ public class Message implements Serializable {
     this.time = java.util.Calendar.getInstance().getTime();
   }
 
-  public Message(String name, String message, String[] users){
+  public Message(String name, String message, String users){
     this.name = name;
     this.message = message;
     this.time = java.util.Calendar.getInstance().getTime();
@@ -45,11 +45,11 @@ public class Message implements Serializable {
     this.name = name;
   }
 
-  public String[] getUsers() {
+  public String getUsers() {
     return users;
   }
 
-  public void setUsers(String[] users) {
+  public void setUsers(String users) {
     this.users = users;
   }
 }

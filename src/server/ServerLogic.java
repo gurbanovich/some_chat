@@ -11,13 +11,13 @@ import java.net.Socket;
 public class ServerLogic {
 
   private static int port;
-  private static UserList userList;
+  private static UserList userList = new UserList();
   private Socket clientSocket;
   private ServerSocket serverSocket;
 
   public ServerLogic(int port) throws IOException, ClassNotFoundException {
     this.serverSocket = new ServerSocket(port);
-    this.userList = new UserList();
+    //this.userList = new UserList();
   }
 
   public void processServer() throws IOException {
@@ -39,6 +39,8 @@ public class ServerLogic {
           } catch (IOException ie) {
             System.err.println("I/O exception");
             ie.printStackTrace();
+          } catch (ClassNotFoundException e) {
+            e.printStackTrace();
           }
         }
       }

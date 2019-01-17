@@ -1,6 +1,7 @@
 package server;
 
 import client.Client;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -10,20 +11,20 @@ import java.util.Map;
 
 public class UserList {
 
-  private Map<String, Client> onlineUsers = new HashMap<String, Client>();
+  private Map<String, ClientOnServer> onlineUsers = new HashMap<String, ClientOnServer>();
 
-  public void addUser(String name, Socket socket) {
+  public void addUser(String name, Socket socket) throws IOException, ClassNotFoundException {
     System.out.println( name +" connected" );
 
     if (!this.onlineUsers.containsKey(name)) {
-      this.onlineUsers.put(name , new Client(socket));
+      this.onlineUsers.put(name, new ClientOnServer(socket));
     } else {
       int i = 1;
       while(this.onlineUsers.containsKey(name)) {
         name = name + i;
         i++;
       }
-      this.onlineUsers.put(name , new Client(socket));
+      this.onlineUsers.put(name , new ClientOnServer(socket));
     }
   }
 
@@ -40,11 +41,15 @@ public class UserList {
     return strNames;
   }
 
-  public ArrayList<Client> getClientsList() {
-    ArrayList<Client> clientsList = new ArrayList<Client>(this.onlineUsers.entrySet().size());
+  public ClientOnServer getUser(String name) {
+    return onlineUsers.get(name);
+  }
+
+  public ArrayList<ClientOnServer> getClientsList() {
+    ArrayList<ClientOnServer> clientsList = new ArrayList<ClientOnServer>(this.onlineUsers.entrySet().size());
 
     //String s = "";
-    for(Map.Entry<String, Client> m : this.onlineUsers.entrySet()){
+    for(Map.Entry<String, ClientOnServer> m : this.onlineUsers.entrySet()){
       clientsList.add(m.getValue());
       System.out.println(m.getKey());
      // s = s + m.getKey();
