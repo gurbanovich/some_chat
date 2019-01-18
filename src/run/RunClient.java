@@ -10,7 +10,7 @@ public class RunClient {
 
 
     public static String ipAddr = "localhost";
-    public static int port = 8080;
+    public static int port = 8082;
 
     /**
      * создание клиент-соединения с узананными адресом и номером порта
@@ -27,15 +27,10 @@ public class RunClient {
     private static BufferedReader in;
     private static BufferedWriter out;
 
-    public static void downService() {
-      try {
-        if (!socket.isClosed()) {
-          socket.close();
-          in.close();
-          out.close();
-        }
-      } catch (IOException ignored) {}
-    }
+    ClientLogic cl = new ClientLogic(ipAddr, port);
+
+
+
 
 
 

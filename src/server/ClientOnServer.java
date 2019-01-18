@@ -25,11 +25,11 @@ public class ClientOnServer extends Thread {
 
   public void run() {
     try {
-      final ObjectInputStream inputStream = new ObjectInputStream(this.socket.getInputStream());
-      final ObjectOutputStream outputStream = new ObjectOutputStream(this.socket.getOutputStream());
-      final BufferedWriter out = new BufferedWriter(
+      is = new ObjectInputStream(this.socket.getInputStream());
+       ObjectOutputStream outputStream = new ObjectOutputStream(this.socket.getOutputStream());
+       BufferedWriter out = new BufferedWriter(
           new OutputStreamWriter(socket.getOutputStream()));
-      this.mes = (Message) inputStream.readObject();
+      this.mes = (Message) is.readObject();
       this.name = this.mes.getName();
       for (ClientOnServer cos : ServerLogic.getUserList().getClientsList()) {
         cos.out.write(this.name);

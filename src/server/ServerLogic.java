@@ -10,7 +10,7 @@ import java.net.Socket;
 
 public class ServerLogic {
 
-  private static int port;
+  private int port;
   private static UserList userList = new UserList();
   private Socket clientSocket;
   private ServerSocket serverSocket;
@@ -33,8 +33,10 @@ public class ServerLogic {
             BufferedWriter out = new BufferedWriter(
                 new OutputStreamWriter(clientSocket.getOutputStream()));
             name = in.readLine();
-            out.write(this.userList.getNames());
-            out.flush();
+            if(this.userList.getNames() != null) {
+              out.write(this.userList.getNames());
+              out.flush();
+            }
             this.userList.addUser(name, clientSocket);
           } catch (IOException ie) {
             System.err.println("I/O exception");

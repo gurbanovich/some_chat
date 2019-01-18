@@ -1,12 +1,17 @@
 package run;
 
+import java.io.IOException;
 import server.ServerLogic;
 
 public class RunServer {
 
-  public static void main(String[] args) {
+  private static int port = 8082;
 
-    ServerLogic st = new ServerLogic();
+  public static void main(String[] args) throws IOException, ClassNotFoundException {
+
+    ServerLogic st = new ServerLogic(port);
+
+    st.processServer();
 
   }
 

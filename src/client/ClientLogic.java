@@ -1,15 +1,15 @@
 package client;
 
-import static java.lang.System.out;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import server.Message;
 //import sun.util.calendar.LocalGregorianCalendar.Date;
 
 public class ClientLogic {
@@ -17,20 +17,19 @@ public class ClientLogic {
   private Socket socket;
   private BufferedReader in; // поток чтения из сокета
   private BufferedWriter out; // поток чтения в сокет
+  private ObjectOutputStream os;
   private BufferedReader inputUser; // поток чтения с консоли
   private String addr; // ip адрес клиента
   private int port; // порт соединения
   private String nickname; // имя клиента
   // текущая дата
   private Date time = new Date();
-  private String dtime;
+  private Date dtime;
   private SimpleDateFormat dt1;
+  private String name;
 
   /**
    * для создания необходимо принять адрес и номер порта
-   *
-   * @param addr
-   * @param port
    */
 
   public ClientLogic(String addr, int port) {
@@ -46,9 +45,20 @@ public class ClientLogic {
       inputUser = new BufferedReader(new InputStreamReader(System.in));
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+      os = new ObjectOutputStream(socket.getOutputStream());
       //this.pressNickname(); // перед началом необходимо спросит имя
+
+      System.out.print("Press your nick: ");
+      try {
+        this.name = inputUser.readLine();
+        out.write("Hello " + name + "\n");
+        out.flush();
+      } catch (IOException ignored) {
+      }
+
       new ReadMsg().start(); // нить читающая сообщения из сокета в бесконечном цикле
-      new WriteMsg().start(); // нить пишущая сообщения в сокет приходящие с консоли в бесконечном цикле
+      new WriteMsg(this.name)
+          .start(); // нить пишущая сообщения в сокет приходящие с консоли в бесконечном цикле
     } catch (IOException e) {
       // Сокет должен быть закрыт при любой
       // ошибке, кроме ошибки конструктора сокета:
@@ -83,12 +93,16 @@ public class ClientLogic {
         socket.close();
         in.close();
         out.close();
+        os.close();
       }
-    } catch (IOException ignored) {}
+    } catch (IOException ignored) {
+    }
   }
+
 
   // нить чтения сообщений с сервера
   private class ReadMsg extends Thread {
+
     @Override
     public void run() {
 
@@ -111,22 +125,46 @@ public class ClientLogic {
   // нить отправляющая сообщения приходящие с консоли на сервер
   public class WriteMsg extends Thread {
 
+    private String name;
+
+    public WriteMsg(String name) {
+      this.name = name;
+    }
+
     @Override
     public void run() {
       while (true) {
         String userWord;
         try {
-          dt1 = new SimpleDateFormat("HH:mm:ss"); // берем только время до секунд
-          dtime = dt1.format(time); // время
+          //dt1 = new SimpleDateFormat("HH:mm:ss"); // берем только время до секунд
+          //dtime = time; // время
           userWord = inputUser.readLine(); // сообщения с консоли
           if (userWord.equals("stop")) {
-            out.write("stop" + "\n");
+            Message mes = new Message(name, userWord);
+            os.writeObject(mes); // отправляем на сервер
+            os.flush();
             ClientLogic.this.downService(); // харакири
             break; // выходим из цикла если пришло "stop"
+          } else if (userWord.equals("get users")) {
+            System.out.println(userWord);
+            Message mes = new Message(name, userWord);
+            os.writeObject(mes); // отправляем на сервер
+            os.flush();
           } else {
-            out.write("(" + dtime + ") " + nickname + ": " + userWord + "\n"); // отправляем на сервер
+            System.out.println(userWord);
+            String[] fn = userWord.split("\\#");
+            System.out.println();
+            String userName = fn[0];
+            System.out.println(userName);
+            String message = fn[1];
+            System.out.println(message);
+            Message mes = new Message(name, message, userName);
+            System.out.println(mes.getMessage());
+            os.writeObject(mes); // отправляем на сервер
+            os.flush();
           }
           out.flush(); // чистим
+          os.flush();
         } catch (IOException e) {
           ClientLogic.this.downService(); // в случае исключения тоже харакири
 
