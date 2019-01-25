@@ -13,18 +13,18 @@ public class UserList {
 
   private Map<String, ClientOnServer> onlineUsers = new HashMap<String, ClientOnServer>();
 
-  public void addUser(String name, Socket socket) throws IOException, ClassNotFoundException {
+  public void addUser(String name, Socket socket, ObjectInputStream in, ObjectOutputStream out) throws IOException, ClassNotFoundException {
     System.out.println( name +" connected" );
 
     if (!this.onlineUsers.containsKey(name)) {
-      this.onlineUsers.put(name, new ClientOnServer(socket));
+      this.onlineUsers.put(name, new ClientOnServer(socket, in, out));
     } else {
       int i = 1;
       while(this.onlineUsers.containsKey(name)) {
         name = name + i;
         i++;
       }
-      this.onlineUsers.put(name , new ClientOnServer(socket));
+      this.onlineUsers.put(name , new ClientOnServer(socket, in, out));
     }
   }
 

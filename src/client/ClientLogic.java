@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
@@ -15,8 +16,8 @@ import server.Message;
 public class ClientLogic {
 
   private Socket socket;
-  private BufferedReader in; // поток чтения из сокета
-  private BufferedWriter out; // поток чтения в сокет
+  private ObjectInputStream is; // поток чтения из сокета
+  //private BufferedWriter out; // поток чтения в сокет
   private ObjectOutputStream os;
   private BufferedReader inputUser; // поток чтения с консоли
   private String addr; // ip адрес клиента
@@ -43,16 +44,15 @@ public class ClientLogic {
     try {
       // потоки чтения из сокета / записи в сокет, и чтения с консоли
       inputUser = new BufferedReader(new InputStreamReader(System.in));
-      in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+      is = new ObjectInputStream(socket.getInputStream());
       os = new ObjectOutputStream(socket.getOutputStream());
       //this.pressNickname(); // перед началом необходимо спросит имя
 
-      System.out.print("Press your nick: ");
+      System.out.print("Press your nick:   ");
       try {
         this.name = inputUser.readLine();
-        out.write("Hello " + name + "\n");
-        out.flush();
+        os.writeObject("Hello " + name + "\n");
+        os.flush();
       } catch (IOException ignored) {
       }
 
@@ -91,8 +91,8 @@ public class ClientLogic {
     try {
       if (!socket.isClosed()) {
         socket.close();
-        in.close();
-        out.close();
+        is.close();
+        os.close();
         os.close();
       }
     } catch (IOException ignored) {
@@ -109,7 +109,7 @@ public class ClientLogic {
       String str;
       try {
         while (true) {
-          str = in.readLine(); // ждем сообщения с сервера
+          str = (String) is.readLine(); // ждем сообщения с сервера
           if (str.equals("stop")) {
             ClientLogic.this.downService(); // харакири
             break; // выходим из цикла если пришло "stop"
@@ -149,7 +149,7 @@ public class ClientLogic {
             System.out.println(userWord);
             Message mes = new Message(name, userWord);
             os.writeObject(mes); // отправляем на сервер
-            os.flush();
+           // os.flush();
           } else {
             System.out.println(userWord);
             String[] fn = userWord.split("\\#");
@@ -163,7 +163,7 @@ public class ClientLogic {
             os.writeObject(mes); // отправляем на сервер
             os.flush();
           }
-          out.flush(); // чистим
+          os.flush(); // чистим
           os.flush();
         } catch (IOException e) {
           ClientLogic.this.downService(); // в случае исключения тоже харакири

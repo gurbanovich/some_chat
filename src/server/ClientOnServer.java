@@ -16,30 +16,31 @@ public class ClientOnServer extends Thread {
   private String name;
   private ObjectOutputStream os;
   private ObjectInputStream is;
-  private BufferedWriter out;
 
-  public ClientOnServer(Socket socket) throws ClassNotFoundException, IOException {
+  public ClientOnServer(Socket socket, ObjectInputStream is, ObjectOutputStream os) throws ClassNotFoundException, IOException {
     this.socket = socket;
+    this.is = is;
+    this.os = os;
     this.start();
   }
 
   public void run() {
     try {
-      is = new ObjectInputStream(this.socket.getInputStream());
+       /*is = new ObjectInputStream(this.socket.getInputStream());
        ObjectOutputStream outputStream = new ObjectOutputStream(this.socket.getOutputStream());
        BufferedWriter out = new BufferedWriter(
-          new OutputStreamWriter(socket.getOutputStream()));
-      this.mes = (Message) is.readObject();
+          new OutputStreamWriter(socket.getOutputStream()));*/
+      this.mes = (Message) new ObjectInputStream(this.socket.getInputStream()).readObject();
       this.name = this.mes.getName();
       for (ClientOnServer cos : ServerLogic.getUserList().getClientsList()) {
-        cos.out.write(this.name);
-        cos.out.flush();
+        cos.os.writeObject(this.name);
+        cos.os.flush();
       }
 
       while (true) {
         if (this.mes.getMessage().equalsIgnoreCase("get users")) {
-          this.out.write(ServerLogic.getUserList().getNames());
-          this.out.flush();
+          this.os.writeObject(ServerLogic.getUserList().getNames());
+          this.os.flush();
         } else if (this.mes.getMessage().equalsIgnoreCase("stop")) {
 
         } else {
@@ -49,8 +50,8 @@ public class ClientOnServer extends Thread {
           String users = mes.getUsers();
           String outMessage = "Encoding: " + name + ": " + date + " " + words;
           ClientOnServer cos = ServerLogic.getUserList().getUser(name);
-          cos.out.write(outMessage);
-          cos.out.flush();
+          cos.os.writeObject(outMessage);
+          cos.os.flush();
 
         }
       }
