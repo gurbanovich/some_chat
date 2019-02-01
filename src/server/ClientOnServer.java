@@ -2,6 +2,7 @@ package server;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
@@ -30,7 +31,10 @@ public class ClientOnServer extends Thread {
        ObjectOutputStream outputStream = new ObjectOutputStream(this.socket.getOutputStream());
        BufferedWriter out = new BufferedWriter(
           new OutputStreamWriter(socket.getOutputStream()));*/
-      this.mes = (Message) new ObjectInputStream(this.socket.getInputStream()).readObject();
+      /*InputStream isss = this.socket.getInputStream();
+      System.out.println(isss.toString());
+      ObjectInputStream iss = new ObjectInputStream(isss);*/
+      this.mes = (Message) is.readObject();
       this.name = this.mes.getName();
       for (ClientOnServer cos : ServerLogic.getUserList().getClientsList()) {
         cos.os.writeObject(this.name);

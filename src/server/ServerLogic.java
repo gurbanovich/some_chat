@@ -1,12 +1,8 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -28,22 +24,24 @@ public class ServerLogic {
       while (true) {
         this.clientSocket = null;
         while (clientSocket == null) {
+
           clientSocket = this.serverSocket.accept();
           try {
-            ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+            out.flush();
+            ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
             name = (String) in.readLine();
             this.userList.addUser(name, clientSocket, in, out);
-            if(this.userList.getNames() != null) {
+            if (this.userList.getNames() != null) {
               out.writeObject(this.userList.getNames());
               out.flush();
             }
 
           } catch (IOException ie) {
-            System.err.println("I/O exception");
+            //System.err.println("I/O exception");
             ie.printStackTrace();
           } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            System.err.println("some exception");
           }
         }
       }

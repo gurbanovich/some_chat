@@ -1,12 +1,10 @@
 package client;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,9 +54,8 @@ public class ClientLogic {
       } catch (IOException ignored) {
       }
 
-      new ReadMsg().start(); // нить читающая сообщения из сокета в бесконечном цикле
-      new WriteMsg(this.name)
-          .start(); // нить пишущая сообщения в сокет приходящие с консоли в бесконечном цикле
+      new ReadMsg(is, os, socket); // нить читающая сообщения из сокета в бесконечном цикле
+      new WriteMsg(this.name, is, os, socket); // нить пишущая сообщения в сокет приходящие с консоли в бесконечном цикле
     } catch (IOException e) {
       // Сокет должен быть закрыт при любой
       // ошибке, кроме ошибки конструктора сокета:
@@ -103,13 +100,26 @@ public class ClientLogic {
   // нить чтения сообщений с сервера
   private class ReadMsg extends Thread {
 
+    private ObjectInputStream is;
+    private ObjectOutputStream os;
+    private Socket socket;
+
+    public ReadMsg(ObjectInputStream is, ObjectOutputStream os, Socket socket) {
+      this.is = is;
+      this.os = os;
+      this.socket = socket;
+      this.start();
+    }
+
     @Override
     public void run() {
 
       String str;
       try {
         while (true) {
-          str = (String) is.readLine(); // ждем сообщения с сервера
+          str = is.readObject().toString();
+          //str = (String) is.readLine(); // ждем сообщения с сервера
+          //System.out.println("name is: " + str);
           if (str.equals("stop")) {
             ClientLogic.this.downService(); // харакири
             break; // выходим из цикла если пришло "stop"
@@ -118,6 +128,8 @@ public class ClientLogic {
         }
       } catch (IOException e) {
         ClientLogic.this.downService();
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
       }
     }
   }
@@ -126,9 +138,16 @@ public class ClientLogic {
   public class WriteMsg extends Thread {
 
     private String name;
+    private ObjectInputStream is;
+    private ObjectOutputStream os;
+    private Socket socket;
 
-    public WriteMsg(String name) {
+    public WriteMsg(String name, ObjectInputStream is, ObjectOutputStream os, Socket socket) {
       this.name = name;
+      this.is = is;
+      this.os = os;
+      this.socket = socket;
+      this.start();
     }
 
     @Override
@@ -138,7 +157,9 @@ public class ClientLogic {
         try {
           //dt1 = new SimpleDateFormat("HH:mm:ss"); // берем только время до секунд
           //dtime = time; // время
-          userWord = inputUser.readLine(); // сообщения с консоли
+          userWord = inputUser.readLine();
+          System.out.println("name is: " + userWord);
+          // сообщения с консоли
           if (userWord.equals("stop")) {
             Message mes = new Message(name, userWord);
             os.writeObject(mes); // отправляем на сервер
@@ -149,7 +170,7 @@ public class ClientLogic {
             System.out.println(userWord);
             Message mes = new Message(name, userWord);
             os.writeObject(mes); // отправляем на сервер
-           // os.flush();
+            // os.flush();
           } else {
             System.out.println(userWord);
             String[] fn = userWord.split("\\#");
